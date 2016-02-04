@@ -1,0 +1,357 @@
+var express = require('express');
+var router = express.Router();
+var gm = require('gm');
+var fs = require('fs-extra');
+var path = require('path');
+var imgur = require('imgur');
+var multer = require('multer');
+var upload = multer({ dest: 'uploads/' });
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, '/home/thoughthaven/pdf2model/uploads');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '.pdf');
+  }
+});
+var upload = multer({ storage: storage, limits: { fileSize: 6000000 }, fileFilter: fileFilter });
+imgur.setClientId('84e5b2c103eb243');
+
+/* GET home page. */
+router.get('/', function(req, res, next) {
+  res.render('index', { title: 'pdf2model' });
+});
+
+// POST textureUpload
+router.post('/', upload.single('textureUpload'), function (req, res, next) {
+  // req.file is the `textureUpload` file
+  // req.body will hold the text fields, if there were any
+  console.log(req.file);
+  console.log(req.body);
+  
+  var fileArr = [];
+  var linkArr = [];
+  var doneOrNot = false;
+  // gm().command('convert').in('+adjoin').in('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '.pdf').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-conversion.png', function(err) {
+   // something
+  gm().command('convert').in('+adjoin').density(300, 300).quality(100).in('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '.pdf').resize(1800, 1800).extent(1800, 1800, '!').write('/home/thoughthaven/pdf2model/created/' + req.file.fieldname + '-conversion%02d.png', function(err) {
+  // gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '.pdf').gravity('Center').resize(1800, 1800).density(300, 300).quality(100).extent(1800, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-conversion.png', function(err) {
+    if(!err) {
+      // var x = 0;
+      // var y = 1;
+      
+      fs.readdir('/home/thoughthaven/pdf2model/created', function(err,files) {
+        if(err) throw err;
+        if(files.length == 1) {
+          singleFile(req, files, fileArr, specialness(fileArr, linkArr, res));
+        }
+        else if(files.length > 1) {
+        files.forEach(function(file, index) {
+          if(index == 0) {
+            doneOrNot = true;
+          }
+          if(req.body.single === 'on' && index == files.length - 1 && doneOrNot) {
+            doneOrNot = false;
+            singleSided(req, file, index, fileArr, specialness(fileArr, linkArr, res));
+          }
+          else if(req.body.single === 'on' && doneOrNot) {
+            doneOrNot = false;
+            singleSided(req, file, index, fileArr, function() {
+              doneOrNot = true;
+              console.log('Done');
+            });
+          }
+          else if(index % 2 == 0 && files.length % 2 == 0 && index == files.length - 1 && doneOrNot) {
+            doneOrNot = false;
+            pageOneOfTwo(req, file, index, fileArr, specialness(fileArr, linkArr, res));
+          }
+          else if(index % 2 == 0 && files.length % 2 == 0) {
+            doneOrNot = false;
+            pageOneOfTwo(req, file, index, fileArr, function() {
+              doneOrNot = true;
+              console.log('Done');
+            });
+          }
+          else if(index % 2 != 0 && files.length % 2 == 0 && index == files.length - 1 && doneOrNot) {
+            doneOrNot = false;
+            pageTwoOfTwo(req, file, index, fileArr, specialness(fileArr, linkArr, res)); 
+          }
+          else if(index % 2 != 0 && files.length % 2 == 0 && doneOrNot) {
+            doneOrNot = false;
+            pageTwoOfTwo(req, file, index, fileArr, function() {
+              doneOrNot = true;
+              console.log('Done');
+            });
+          }
+          else if(files.length % 2 != 0 && index % 2 == 0 && index == files.length - 1 && doneOrNot) {
+            doneOrNot = false;
+           pageOneOfTwo(req, file, index, fileArr, specialness());
+        }
+        else if(files.length % 2 != 0 && index % 2 == 0 && doneOrNot) {
+          doneOrNot = false;
+          pageOneOfTwo(req, file, index, fileArr, function() {
+            doneOrNot = true;
+            console.log('Done');
+          });
+        }
+        else if(files.length % 2 != 0 && index % 2 != 0 && index != files.length - 1 && doneOrNot) {
+          doneOrNot = false;
+          pageTwoOfTwo(req, file, index, fileArr, function() {
+            doneOrNot = true;
+            console.log('Done');
+          });
+        }
+        else if(index == files.length - 1 && doneOrNot) {
+          doneOrNot = false;
+          singleSided(req, file, index, fileArr, specialness(fileArr, linkArr, res));
+        }
+        else {
+          console.log('No files?');
+        }
+        fileArr.push('/home/thoughthaven/pdf2model/created/' + file);
+        });
+        }
+      });
+    }
+    else {
+      throw(err);
+    }
+  });
+  
+//   fileArr.forEach(function(file) {
+//   imgur.uploadFile(file)
+//                   .then(function(json) {
+//                     linkArr.push(json.data.link)
+//                     console.log(json.data.link);
+//                   })
+//                   .catch(function (err) {
+//                     console.error(err.message);
+//                 });
+//   });
+//   fs.emptyDir('/home/thoughthaven/pdf2model/created', function (err) {
+//   if (!err) console.log('successfully deleted creations!')
+// })
+// res.render('complete', {'title': 'pdf2model', 'links': linkArr});
+  
+  console.log(req.body);
+});
+
+var specialness = function(fileArr, linkArr, res) {
+  fileArr.forEach(function(file) {
+              imgur.uploadFile(file)
+                              .then(function(json) {
+                                linkArr.push(json.data.link);
+                                fs.emptyDir('/home/thoughthaven/pdf2model/created', function (err) {
+                                if (!err){  console.log('successfully deleted creations!');
+                                res.render('complete', {'title': 'pdf2model', 'links': linkArr});
+                                }
+                                else {
+                                  throw(err);
+                                }
+                              });
+                                console.log(json.data.link);
+                              })
+                              .catch(function (err) {
+                                console.error(err.message);
+                            });
+              });
+}
+
+var singleFile = function(req, files, fileArr, callback) { console.log('/home/thoughthaven/pdf2model/created/' + files[0]);
+            gm('/home/thoughthaven/pdf2model/created/' + files[0]).gravity('SouthWest').rotate('white', -90).extent(5400, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text0-part0.png', function(err) {
+              if(!err) { console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '-part0.png created');
+               gm('/home/thoughthaven/pdf2model/created/' + files[0]).gravity('SouthWest').rotate('white', -90).extent(1800, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part0.png', function(err) {
+              if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part0.png created');
+                gm('/home/thoughthaven/pdf2model/created/' + files[0]).gravity('SouthWest').rotate('white', -90).extent(3600, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part1.png', function(err) {
+              if(!err){console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part1.png created');
+                gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part0.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part1.png', true).repage(5400, 1800, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '-part1.png', function(err) {
+                if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '-part1.png created');
+                gm('/home/thoughthaven/pdf2model/created/' + files[0]).gravity('SouthWest').rotate('white', -180).extent(1800, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part2.png', function(err) {
+              if(!err) { console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part2.png created');
+              gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part2.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part2.png', true).append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + '0' + '-part2.png', true).repage(5400, 1800, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '-part2.png', function(err) {
+                if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '-part2.png created');
+                gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '-part0.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '-part1.png').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '-part2.png').repage(5400, 5400, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '.png', function(err) {
+                if(!err){console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + '0' + '.png created');
+                fileArr.push('/home/thoughthaven/pdf2model/uploads/' +  req.file.fieldname + '-text0.png');
+                callback();
+                }
+                else {
+                 throw(err);
+               }
+            });
+                }
+                else {
+                 throw(err);
+               }
+            });
+              }
+              else {
+                 throw(err);
+               }
+            });
+                }
+                else {
+                 throw(err);
+               }
+            });
+              }
+              else {
+                 throw(err);
+               }
+            });
+              }
+               else {
+                 throw(err);
+               }
+            });
+              }
+               else {
+                 throw(err);
+               }
+            });
+};
+
+var singleSided = function(req, file, index, fileArr, callback) {
+  gm('/home/thoughthaven/pdf2model/created/' + file).gravity('SouthWest').rotate('white', -90).extent(5400, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part0.png', function(err) {
+              if(!err) { console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part0.png created');
+               gm('/home/thoughthaven/pdf2model/created/' + file).gravity('SouthWest').rotate('white', -90).extent(1800, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part0.png', function(err) {
+              if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part0.png created');
+                gm('/home/thoughthaven/pdf2model/created/' + file).gravity('SouthWest').rotate('white', -90).extent(3600, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part1.png', function(err) {
+              if(!err){console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part1.png created');
+                gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part0.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part1.png', true).repage(5400, 1800, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part1.png', function(err) {
+                if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part1.png created');
+                gm('/home/thoughthaven/pdf2model/created/' + file).gravity('SouthWest').rotate('white', -180).extent(1800, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part2.png', function(err) {
+              if(!err) { console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part2.png created');
+              gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part2.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part2.png', true).append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part2.png', true).repage(5400, 1800, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part2.png', function(err) {
+                if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part2.png created');
+                gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part0.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part1.png').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part2.png').repage(5400, 5400, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '.png', function(err) {
+                if(!err){console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '.png created');
+                fileArr.push('/home/thoughthaven/pdf2model/uploads/' +  req.file.fieldname + '-text' + index + '.png');
+                callback();
+                // imgur.uploadFile('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-conversion.png')
+            //   .then(function (json) {
+            //     console.log(json.data.link);
+            //   })
+            //   .catch(function (err) {
+            //     console.error(err.message);
+            // });
+                }
+                else {
+                 throw(err);
+               }
+            });
+                }
+                else {
+                 throw(err);
+               }
+            });
+              }
+              else {
+                 throw(err);
+               }
+            });
+                }
+                else {
+                 throw(err);
+               }
+            });
+              }
+              else {
+                 throw(err);
+               }
+            });
+              }
+               else {
+                 throw(err);
+               }
+            });
+              }
+               else {
+                 throw(err);
+               }
+            });
+}
+
+var pageOneOfTwo = function(req, file, index, fileArr, callback) {
+  gm('/home/thoughthaven/pdf2model/created/' + file).gravity('SouthWest').rotate('white', -90).extent(5400, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part0.png', function(err) {
+              if(!err) { console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part0.png created');
+               gm('/home/thoughthaven/pdf2model/created/' + file).gravity('SouthWest').rotate('white', -90).extent(1800, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part0.png', function(err) {
+              if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part0.png created');
+                gm('/home/thoughthaven/pdf2model/created/' + file).gravity('SouthWest').rotate('white', -90).extent(3600, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part1.png', function(err) {
+              if(!err){console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part1.png created');
+                gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part0.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + index + '-part1.png', true).repage(5400, 1800, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part1.png', function(err) {
+                if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + index + '-part1.png created');
+                callback();
+                }
+                else {
+                 throw(err);
+               }
+            });
+              }
+              else {
+                 throw(err);
+               }
+            });
+              }
+               else {
+                 throw(err);
+               }
+            });
+              }
+               else {
+                 throw(err);
+               }
+            });
+}
+
+var pageTwoOfTwo = function(req, file, index, fileArr, callback) {
+  var prior = index - 1;
+            gm('/home/thoughthaven/pdf2model/created/' + file).gravity('SouthWest').rotate('white', -180).extent(1800, 1800, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + prior + '-part2.png', function(err) {
+              if(!err) { console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + prior + '-part0.png created');
+            gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + prior + '-part2.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + prior + '-part2.png', true).append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-temp' + prior + '-part2.png', true).repage(5400, 1800, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + prior + '-part2.png', function(err) {
+                if(!err){ console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + prior + '-part2.png created');
+                gm('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + prior + '-part0.png').gravity('SouthWest').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + prior + '-part1.png').append('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + prior + '-part2.png').repage(5400, 5400, 0, 0, '!').write('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + prior + '.png', function(err) {
+                if(!err){console.log('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-text' + prior + '.png created');
+                fileArr.push('/home/thoughthaven/pdf2model/uploads/' +  req.file.fieldname + '-text' + prior + '.png');
+                callback();
+                // imgur.uploadFile('/home/thoughthaven/pdf2model/uploads/' + req.file.fieldname + '-conversion.png')
+            //   .then(function (json) {
+            //     console.log(json.data.link);
+            //   })
+            //   .catch(function (err) {
+            //     console.error(err.message);
+            // });
+                }
+                else {
+                 throw(err);
+               }
+            });
+                }
+                else {
+                 throw(err);
+               }
+            });
+              }
+              else {
+                throw(err);
+              }
+            });
+}
+
+var fileFilter = function fileFilter (req, file, cb) {
+  // The function should call `cb` with a boolean
+  // to indicate if the file should be accepted
+
+  // To accept the file pass `true`, like so:
+  if(path.extname(file.originalname) !== '.pdf') {
+    cb(null, true);
+    console.log('Uploaded');
+  }
+  else {
+    // To reject this file pass `false`, like so:
+    cb(null, false);
+    console.log('Failure');
+  }
+};
+
+module.exports = router;

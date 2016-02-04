@@ -1,0 +1,79 @@
+extends layout
+
+block content
+  div.row
+    div.col-md-12
+      h1 pdf2model
+      p pdf2model is a BETA utility for converting PDFs into TTS model image textures. In order to use this site effectively, you will also require the actual TTS model for such textures...
+      div.card
+        div.card-block
+          div.card-text
+            a(href='obj/documentObject.obj') The document model may be found at this link.
+      p PDFs up to ten (10) pages and five (5) MB in size are currently supported. The resulting images are uploaded to Imgur and then deleted from the local server, along with the PDFs. Links are provided. Conversions may take a while, so please be patient.
+      h1 img2chip
+      p img2chip is a BETA utility for converting three images (a top, a bottom, and a side) into a chip texture useable in TTS. The process is the same as with pdf2model, but instead of PDFs, only PNGs and JPGs are accepted as the input file types. Square images tend to work best for the conversion. Also note that you can change the model type in TTS to "Chip" in order to stack and count chips easily or "Coin" in order to flip it in the air.
+      div.card
+        div.card-block
+          div.card-text
+            a(href='obj/chipObjectLevel2.obj') The chip model may be found at this link.
+      h1 img2token
+      p img2token is an ALPHA utility for converting a single image (either a JPG or a PNG) into a token image with a transparent background. The background color is selected from the top left corner of the image in question. The fuzz amount should be a number representing the amount of colors, in percentage, similar to the main top left background color to remove and replace with transparency. An empty value or 0 results in no colors other than the main background from being removed. 20 should be about right for most images. The utiility returns an image with a transparent background. In order to import it as a token in TTS, choose Custom > Token, and copy the image address. No model is necessary.
+      
+  div.row
+    div.col-md-7.col-sm-12
+      div.card
+        div.card-block
+          h2 Documentify!
+          form(id='documentify', action='/', method='post', enctype='multipart/form-data')
+            div.form-group
+              label(for='documentUpload') PDF:
+              input.form-control(type='file', id='documentUpload', name='documentUpload')
+            div.checkbox
+              label
+                input(type='checkbox', id='single', name='single')
+                p Single-sided?
+            button.btn.btn-submit(type='submit') Generate!
+      div.card
+        div.card-block
+          h2 Chipify!
+          form(id='chipify', action='/img2chip', method='post', enctype='multipart/form-data')
+            div.form-group
+              label(for='topUpload') Top image:
+              input.form-control(type='file', id='topUpload', name='topUpload')
+            div.form-group
+              label(for='bottomUpload') Bottom image:
+              input.form-control(type='file', id='bottomUpload', name='bottomUpload')
+            div.form-group
+              label(for='sideUpload') Side image:
+              input.form-control(type='file', id='sideUpload', name='sideUpload')
+            button.btn.btn-sumbit(type='submit') Generate!
+      div.card
+        div.card-block
+          h3 Tokenify!
+          form(id='tokenify', action='/img2token', method='post', enctype='multipart/form-data')
+            div.form-group
+              label(for='imageUpload') Image:
+              input.form-control(type='file', id='imageUpload', name='imageUpload')
+            div.form-group
+              label.sr-only(for='fuzzAmount') Amount (in dollars)
+              div.input-group
+                input.form-control(type='text', id='fuzzAmount', name='fuzzAmount', placeholder='Fuzz Amount')
+                div.input-group-addon %
+            button.btn.btn-submit(type='submit') Generate!
+          
+    div.col-md-5.col-sm-12
+      h2 What can you use this utility for?
+      p pdf2model is primarily designed for use in tabletop RPGs and wargames that require character or stat sheets for player characters or units. Once the images have been uploaded to Imgur, you can simply import the model with the applied texture following the steps below:
+      ol
+        li Open TTS and, while hosting or serving as a promoted player, open the Chest (Host > Chest).
+        li Select Custom > Model.
+        li Copy the link to the model object by right-clicking the above model link and choosing Copy Link Location.
+        li Paste that model link into the first field under the Custom Model dialog (Object/Model).
+        li Copy the Imgur link to one of the generated images. Note that even if you selected single-sided image, the resulting texture will have two sides; they will, however, be identical on both sides.
+        li Paste that Imgur link into the second field under the Custom Model dialog (Image/Diffuse).
+        li Repeat steps as necessary to import all pages of your generated character or stat sheet.
+      p As a note to those of you who are unaware, PDFs can be generated from almost any webpage open in Chrome by going to Print > Print to PDF.
+      p One more thing: You can also grab the Imgur links for the separate page images and import them as custom table backgrounds and game boards! Simply go to Custom > Table or Custom > Board and paste the image URL you want.
+    div.animation-wrap
+      div.animation
+        

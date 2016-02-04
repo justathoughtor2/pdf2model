@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  div.row
+    div.col-md-12
+      div.card
+        div.card-block
+          div.row
+            if linkArr
+              each link in linkArr
+                div.col-md-4.col-sm-6.col-xs-12
+                  a(href=link)
+                    img.img-fluid.img-thumbnail(src=link, alt='TTS Image')
+        div.card-block
+          div.card-title
+            h2= title
+          div.card-text
+            p If you're wondering why some of your images might be PNGs and others JPGs, the answer is a quirk of Imgur that converts PNGs to JPGs when the files are larger. Color PDFs and color images tend to trigger this conversion with pdf2model and img2chip.
+                

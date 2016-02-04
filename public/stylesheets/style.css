@@ -1,0 +1,27 @@
+@keyframes play {
+  from { background-position:    0px; }
+    to { background-position: -3166px; }
+}
+
+.animation {
+  width: 396px;
+  height: 396px;
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  background-image: url(EaLoading.png);
+  background-repeat: no-repeat;
+  animation: play .8s steps(8) infinite;
+}
+
+.animation-wrap {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+  visibility: hidden;
+  background-color: rgba(190, 190, 190, 0.7);
+  transform-style: preserve-3d;
+}
