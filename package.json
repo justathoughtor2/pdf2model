@@ -12,11 +12,20 @@
     "express": "~4.13.1",
     "jade": "~1.11.0",
     "morgan": "~1.6.1",
-    "serve-favicon": "~2.3.0"
+    "serve-favicon": "~2.3.0",
+    "fs-extra": "*"
   },
   "main": "app.js",
   "devDependencies": {},
-  "author": "",
+  "author": "justathoughtor2",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justathoughtor2/pdf2model.git"
+  },
+  "bugs": {
+    "url": "https://github.com/justathoughtor2/pdf2model/issues"
+  },
+  "homepage": "https://github.com/justathoughtor2/pdf2model#readme",
   "description": ""
 }
