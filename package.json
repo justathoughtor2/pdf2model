@@ -15,7 +15,8 @@
     "serve-favicon": "~2.3.0",
     "fs-extra": "*",
     "multer": "*",
-    "unirest": "*"
+    "unirest": "*",
+    "async": "*"
   },
   "main": "app.js",
   "devDependencies": {},
