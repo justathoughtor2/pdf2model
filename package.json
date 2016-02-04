@@ -14,7 +14,8 @@
     "morgan": "~1.6.1",
     "serve-favicon": "~2.3.0",
     "fs-extra": "*",
-    "multer": "*"
+    "multer": "*",
+    "unirest": "*"
   },
   "main": "app.js",
   "devDependencies": {},
