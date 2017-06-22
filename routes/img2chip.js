@@ -71,7 +71,7 @@ router.post('/img2chip', uploadchip.fields([{name: 'topUpload', maxCount: 1}, {n
             
             if(uploadThis.test(file)) {
               unirest.post("https://imgur-apiv3.p.mashape.com/3/image")
-                .header("X-Mashape-Key", "9Z879s0gtDmshJOBdM7EgMc2bu5Fp1fXKfOjsnYLHcXBWNXqEB")
+                .header("X-Mashape-Key", process.env.MASHAPE_KEY)
                 .header("Authorization", "Client-ID 84e5b2c103eb243")
                 .header("Content-Type", "multipart/form-data")
                 .attach("image", filePath)

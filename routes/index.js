@@ -10,15 +10,15 @@ var retry = require('retry');
 
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '/home/thoughthaven/pdf2model/uploads');
+    cb(null, '/home/thoug/pdf2model/uploads');
   },
   filename: function (req, file, cb) {
-    filenameEdit = file.originalname.replace(/\(/g, '_').replace(/\)/g, '_').replace(/\[/g, '_').replace(/\]/g, '_').replace(/\s/g, '_');
+    var filenameEdit = file.originalname.replace(/\(/g, '_').replace(/\)/g, '_').replace(/\[/g, '_').replace(/\]/g, '_').replace(/\s/g, '_');
     cb(null, filenameEdit + Date.now());
   }
 });
 
-var upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: function(req, file, cb) {
+var upload = multer({ storage: storage, limits: { fileSize: 9 * 1024 * 1024 }, fileFilter: function(req, file, cb) {
   // To accept the file pass `true`, like so:
   if(file.mimetype === 'application/pdf') {
     cb(null, true);
@@ -55,21 +55,21 @@ router.post('/', upload.single('documentUpload'), function (req, res, next) {
     
     if(req.body.single === 'on') checked = 'true';
     
-    fs.stat('/home/thoughthaven/pdf2model/uploads/' + req.file.filename, function(err, stat) {
+    fs.stat('/home/thoug/pdf2model/uploads/' + req.file.filename, function(err, stat) {
         var linkArr = [];
         if(err) console.log(err);
         var operation = retry.operation();
         operation.attempt(function(currentAttempt) {
-          exec('/home/thoughthaven/pdf2model/documentify.sh /home/thoughthaven/pdf2model/uploads/' + fileTrim + ' ' + checked, function(error, stdout, stderr) {
+          exec('/home/thoug/pdf2model/documentify.sh /home/thoug/pdf2model/uploads/' + fileTrim + ' ' + checked, function(error, stdout, stderr) {
             console.log(stdout);
             console.log(stderr);
             console.log(currentAttempt);
-            fs.readdir('/home/thoughthaven/pdf2model/uploads', function(error, files) {
+            fs.readdir('/home/thoug/pdf2model/uploads', function(error, files) {
           if(error) console.log(error);
           async.map(files, function(file, callback) {
             var uploadThis = new RegExp(fileTrim + '-text[0-9]*\.png');
             var uploadThis2 = new RegExp(fileTrim + '-*[0-9]*\.png');
-            var filePath = '/home/thoughthaven/pdf2model/uploads/' + file;
+            var filePath = '/home/thoug/pdf2model/uploads/' + file;
             console.log(fileTrim);
             console.log(file);
             console.log(uploadThis.test(file));
@@ -77,7 +77,7 @@ router.post('/', upload.single('documentUpload'), function (req, res, next) {
             
             if(uploadThis.test(file) || uploadThis2.test(file)) {
               unirest.post("https://imgur-apiv3.p.mashape.com/3/image")
-                .header("X-Mashape-Key", "9Z879s0gtDmshJOBdM7EgMc2bu5Fp1fXKfOjsnYLHcXBWNXqEB")
+                .header("X-Mashape-Key", process.env.MASHAPE_KEY)
                 .header("Authorization", "Client-ID 84e5b2c103eb243")
                 .header("Content-Type", "multipart/form-data")
                 .attach("image", filePath)
@@ -113,7 +113,7 @@ router.post('/', upload.single('documentUpload'), function (req, res, next) {
 };
 });
 
-var uploadchip = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 }, fileFilter: function(req, file, cb) {
+var uploadchip = multer({ storage: storage, limits: { fileSize: 9 * 1024 * 1024 }, fileFilter: function(req, file, cb) {
   // The function should call `cb` with a boolean
   // to indicate if the file should be accepted
 
@@ -149,36 +149,36 @@ router.post('/img2chip', uploadchip.fields([{name: 'topUpload', maxCount: 1}, {n
   if(fileTrim0.length && fileTrim1.length && fileTrim2.length) {
     console.log('Starting file stat');
     
-    fs.stat('/home/thoughthaven/pdf2model/uploads/' + req.files['topUpload'][0].filename, function(err, stat) {
+    fs.stat('/home/thoug/pdf2model/uploads/' + req.files['topUpload'][0].filename, function(err, stat) {
       console.log('Statting top...');
       if(err) {
         console.log(err);} else {
-        fs.stat('/home/thoughthaven/pdf2model/uploads/' + req.files['bottomUpload'][0].filename, function(err, stat) {
+        fs.stat('/home/thoug/pdf2model/uploads/' + req.files['bottomUpload'][0].filename, function(err, stat) {
           if(err) {
             console.log(err); } else {
-            fs.stat('/home/thoughthaven/pdf2model/uploads/' + req.files['sideUpload'][0].filename, function(err, stat) {
+            fs.stat('/home/thoug/pdf2model/uploads/' + req.files['sideUpload'][0].filename, function(err, stat) {
             
         var linkArr = [];
         if(err) console.log(err);
         var operation = retry.operation();
         operation.attempt(function(currentAttempt) {
           console.log(currentAttempt);
-          exec('/home/thoughthaven/pdf2model/chipify.sh /home/thoughthaven/pdf2model/uploads/' + fileName0 + ' /home/thoughthaven/pdf2model/uploads/' + fileName1 + ' /home/thoughthaven/pdf2model/uploads/' + fileName2 + ' /home/thoughthaven/pdf2model/uploads/' + fileTrim0, function(error, stdout, stderr) {
+          exec('/home/thoug/pdf2model/chipify.sh /home/thoug/pdf2model/uploads/' + fileName0 + ' /home/thoug/pdf2model/uploads/' + fileName1 + ' /home/thoug/pdf2model/uploads/' + fileName2 + ' /home/thoug/pdf2model/uploads/' + fileTrim0, function(error, stdout, stderr) {
             console.log(stdout);
             console.log(stderr);
             console.log(currentAttempt);
-            fs.readdir('/home/thoughthaven/pdf2model/uploads', function(error, files) {
+            fs.readdir('/home/thoug/pdf2model/uploads', function(error, files) {
           if(error) console.log(error);
           async.map(files, function(file, callback) {
             var uploadThis = new RegExp(fileTrim0 + '-chip\.png');
-            var filePath = '/home/thoughthaven/pdf2model/uploads/' + file;
+            var filePath = '/home/thoug/pdf2model/uploads/' + file;
             console.log(fileTrim0);
             console.log(file);
             console.log(uploadThis.test(file));
             
             if(uploadThis.test(file)) {
               unirest.post("https://imgur-apiv3.p.mashape.com/3/image")
-                .header("X-Mashape-Key", "9Z879s0gtDmshJOBdM7EgMc2bu5Fp1fXKfOjsnYLHcXBWNXqEB")
+                .header("X-Mashape-Key", process.env.MASHAPE_KEY)
                 .header("Authorization", "Client-ID 84e5b2c103eb243")
                 .header("Content-Type", "multipart/form-data")
                 .attach("image", filePath)
@@ -237,33 +237,33 @@ router.post('/img2token', uploadchip.single('imageUpload'), function (req, res, 
     }
     console.log('Starting file stat');
     
-    fs.stat('/home/thoughthaven/pdf2model/uploads/' + req.file.filename, function(err, stat) {
+    fs.stat('/home/thoug/pdf2model/uploads/' + req.file.filename, function(err, stat) {
       console.log('Statting image...');
       if(err) {
         console.log(err);} else {
-            fs.stat('/home/thoughthaven/pdf2model/uploads/' + req.file.filename, function(err, stat) {
+            fs.stat('/home/thoug/pdf2model/uploads/' + req.file.filename, function(err, stat) {
             
         var linkArr = [];
         if(err) console.log(err);
         var operation = retry.operation();
         operation.attempt(function(currentAttempt) {
           console.log(currentAttempt);
-          exec('/home/thoughthaven/pdf2model/tokenify.sh /home/thoughthaven/pdf2model/uploads/' + fileName + ' /home/thoughthaven/pdf2model/uploads/' + fileTrim + ' ' + fuzzAmount, function(error, stdout, stderr) {
+          exec('/home/thoug/pdf2model/tokenify.sh /home/thoug/pdf2model/uploads/' + fileName + ' /home/thoug/pdf2model/uploads/' + fileTrim + ' ' + fuzzAmount, function(error, stdout, stderr) {
             console.log(stdout);
             console.log(stderr);
             console.log(currentAttempt);
-            fs.readdir('/home/thoughthaven/pdf2model/uploads', function(error, files) {
+            fs.readdir('/home/thoug/pdf2model/uploads', function(error, files) {
           if(error) console.log(error);
           async.map(files, function(file, callback) {
             var uploadThis = new RegExp(fileTrim + '-token\.png');
-            var filePath = '/home/thoughthaven/pdf2model/uploads/' + file;
+            var filePath = '/home/thoug/pdf2model/uploads/' + file;
             console.log(fileTrim);
             console.log(file);
             console.log(uploadThis.test(file));
             
             if(uploadThis.test(file)) {
               unirest.post("https://imgur-apiv3.p.mashape.com/3/image")
-                .header("X-Mashape-Key", "9Z879s0gtDmshJOBdM7EgMc2bu5Fp1fXKfOjsnYLHcXBWNXqEB")
+                .header("X-Mashape-Key", process.env.MASHAPE_KEY)
                 .header("Authorization", "Client-ID 84e5b2c103eb243")
                 .header("Content-Type", "multipart/form-data")
                 .attach("image", filePath)

@@ -4,6 +4,9 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+// var https = require('https');
+var http = require('http');
+var fs = require('fs');
 
 var index = require('./routes/index');
 // var users = require('./routes/users');
@@ -57,5 +60,17 @@ app.use(function(err, req, res, next) {
   });
 });
 
+/**
+ * Get port from environment and store in Express.
+ */
 
-module.exports = app;
+/**
+ * Create HTTP server.
+ */
+
+// var options = {
+//   key: fs.readFileSync('/home/thoug/certs/server/privkey.pem'),
+//   cert: fs.readFileSync('/home/thoug/certs/server/fullchain.pem')
+// };
+
+app.listen(80);
