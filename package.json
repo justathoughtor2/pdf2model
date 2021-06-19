@@ -171,7 +171,7 @@
     "streamsearch": "^0.1.2",
     "string-width": "^1.0.1",
     "string_decoder": "^0.10.31",
-    "stringstream": "0.0.5",
+    "stringstream": "0.0.6",
     "strip-ansi": "^3.0.0",
     "supports-color": "^3.1.2",
     "tough-cookie": "^2.2.1",
