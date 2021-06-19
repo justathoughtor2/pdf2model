@@ -176,7 +176,7 @@
     "supports-color": "^3.1.2",
     "tough-cookie": "^2.2.1",
     "transformers": "^3.1.0",
-    "tunnel-agent": "^0.4.2",
+    "tunnel-agent": "^0.6.0",
     "tweetnacl": "^0.13.3",
     "type-is": "^1.6.11",
     "typedarray": "0.0.6",
